@@ -3,38 +3,62 @@ version: '3.7'
 services:
   backend:
     build: ./backend-flask
+    container_name: secure-devops-app_backend
     ports:
       - "5000:5000"
     depends_on:
-      - elasticsearch
+      - logstash
     logging:
-      driver: "json-file"
+      driver: "gelf"
       options:
-        max-size: "10m"
-        max-file: "3"
+        gelf-address: "udp://localhost:12201"
 
   frontend:
     build: ./frontend-react
+    container_name: secure-devops-app_frontend
     ports:
       - "3000:3000"
     depends_on:
       - backend
     logging:
-      driver: "json-file"
+      driver: "gelf"
       options:
-        max-size: "10m"
-        max-file: "3"
+        gelf-address: "udp://localhost:12201"
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
+    container_name: secure-devops-app_elasticsearch
     environment:
       - discovery.type=single-node
     ports:
       - "9200:9200"
+    networks:
+      - elk
 
   kibana:
     image: docker.elastic.co/kibana/kibana:7.10.1
+    container_name: secure-devops-app_kibana
     ports:
       - "5601:5601"
     depends_on:
       - elasticsearch
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    networks:
+      - elk
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.10.1
+    container_name: secure-devops-app_logstash
+    volumes:
+      - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+    ports:
+      - "5000:5000"
+    depends_on:
+      - elasticsearch
+    networks:
+      - elk
+
+networks:
+  elk:
+    driver: bridge
