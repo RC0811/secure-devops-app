@@ -3,27 +3,25 @@ version: '3.7'
 services:
   backend:
     build: ./backend-flask
-    container_name: secure-devops-app_backend
     ports:
       - "5000:5000"
     depends_on:
       - logstash
     logging:
-      driver: "gelf"
+      driver: "syslog"
       options:
-        gelf-address: "udp://localhost:12201"
+        syslog-address: "tcp://localhost:5000"
 
   frontend:
     build: ./frontend-react
-    container_name: secure-devops-app_frontend
     ports:
       - "3000:3000"
     depends_on:
       - backend
     logging:
-      driver: "gelf"
+      driver: "syslog"
       options:
-        gelf-address: "udp://localhost:12201"
+        syslog-address: "tcp://localhost:5000"
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
