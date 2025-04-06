@@ -576,4 +576,5 @@ if __name__ == '__main__':
             db.session.commit()
             print("Sample courses created and assigned to John Smith")
 
-    app.run(debug=True, host='0.0.0.0', port=4000)
+    app.run(host="0.0.0.0", port=5000)
+
